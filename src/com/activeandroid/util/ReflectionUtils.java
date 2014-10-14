@@ -33,9 +33,9 @@ import com.activeandroid.annotation.Column;
 import com.activeandroid.serializer.TypeSerializer;
 
 public final class ReflectionUtils {
-	//////////////////////////////////////////////////////////////////////////////////////
+	// ////////////////////////////////////////////////////////////////////////////////////
 	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////////////////
+	// ////////////////////////////////////////////////////////////////////////////////////
 
 	public static boolean isModel(Class<?> type) {
 		return isSubclassOf(type, Model.class) && (!Modifier.isAbstract(type.getModifiers()));
@@ -50,26 +50,24 @@ public final class ReflectionUtils {
 	@SuppressWarnings("unchecked")
 	public static <T> T getMetaData(Context context, String name) {
 		try {
-			final ApplicationInfo ai = context.getPackageManager().getApplicationInfo(context.getPackageName(),
-					PackageManager.GET_META_DATA);
+			final ApplicationInfo ai = context.getPackageManager().getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
 
 			if (ai.metaData != null) {
 				return (T) ai.metaData.get(name);
 			}
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			Log.w("Couldn't find meta-data: " + name);
 		}
 
 		return null;
 	}
-	
+
 	public static Set<Field> getDeclaredColumnFields(Class<?> type) {
 		Set<Field> declaredColumnFields = Collections.emptySet();
-		
+		Set<String> declaredColumnFieldsNames = new LinkedHashSet<String>();
 		if (ReflectionUtils.isSubclassOf(type, Model.class) || Model.class.equals(type)) {
 			declaredColumnFields = new LinkedHashSet<Field>();
-			
+
 			Field[] fields = type.getDeclaredFields();
 			Arrays.sort(fields, new Comparator<Field>() {
 				@Override
@@ -80,21 +78,26 @@ public final class ReflectionUtils {
 			for (Field field : fields) {
 				if (field.isAnnotationPresent(Column.class)) {
 					declaredColumnFields.add(field);
+					declaredColumnFieldsNames.add(field.getName());
 				}
 			}
-	
+
 			Class<?> parentType = type.getSuperclass();
 			if (parentType != null) {
-				declaredColumnFields.addAll(getDeclaredColumnFields(parentType));
+				Set<Field> superFields = getDeclaredColumnFields(parentType);
+				for (Field field : superFields) {
+					if (!declaredColumnFieldsNames.contains(field.getName()))
+						declaredColumnFields.add(field);
+				}
 			}
 		}
-		
-		return declaredColumnFields;		
+
+		return declaredColumnFields;
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////
+	// ////////////////////////////////////////////////////////////////////////////////////
 	// PRIVATE METHODS
-	//////////////////////////////////////////////////////////////////////////////////////
+	// ////////////////////////////////////////////////////////////////////////////////////
 
 	public static boolean isSubclassOf(Class<?> type, Class<?> superClass) {
 		if (type.getSuperclass() != null) {

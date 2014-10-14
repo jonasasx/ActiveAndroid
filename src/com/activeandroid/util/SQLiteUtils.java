@@ -39,60 +39,60 @@ import java.util.Map;
 import java.util.Set;
 
 public final class SQLiteUtils {
-	//////////////////////////////////////////////////////////////////////////////////////
+	// ////////////////////////////////////////////////////////////////////////////////////
 	// ENUMERATIONS
-	//////////////////////////////////////////////////////////////////////////////////////
+	// ////////////////////////////////////////////////////////////////////////////////////
 
 	public enum SQLiteType {
 		INTEGER, REAL, TEXT, BLOB
 	}
 
-	//////////////////////////////////////////////////////////////////////////////////////
+	// ////////////////////////////////////////////////////////////////////////////////////
 	// PUBLIC CONSTANTS
-	//////////////////////////////////////////////////////////////////////////////////////
+	// ////////////////////////////////////////////////////////////////////////////////////
 
-	public static final boolean FOREIGN_KEYS_SUPPORTED = Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO;
+	public static final boolean							FOREIGN_KEYS_SUPPORTED	= Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO;
 
-	//////////////////////////////////////////////////////////////////////////////////////
+	// ////////////////////////////////////////////////////////////////////////////////////
 	// PRIVATE CONTSANTS
-	//////////////////////////////////////////////////////////////////////////////////////
+	// ////////////////////////////////////////////////////////////////////////////////////
 
 	@SuppressWarnings("serial")
-	private static final HashMap<Class<?>, SQLiteType> TYPE_MAP = new HashMap<Class<?>, SQLiteType>() {
-		{
-			put(byte.class, SQLiteType.INTEGER);
-			put(short.class, SQLiteType.INTEGER);
-			put(int.class, SQLiteType.INTEGER);
-			put(long.class, SQLiteType.INTEGER);
-			put(float.class, SQLiteType.REAL);
-			put(double.class, SQLiteType.REAL);
-			put(boolean.class, SQLiteType.INTEGER);
-			put(char.class, SQLiteType.TEXT);
-			put(byte[].class, SQLiteType.BLOB);
-			put(Byte.class, SQLiteType.INTEGER);
-			put(Short.class, SQLiteType.INTEGER);
-			put(Integer.class, SQLiteType.INTEGER);
-			put(Long.class, SQLiteType.INTEGER);
-			put(Float.class, SQLiteType.REAL);
-			put(Double.class, SQLiteType.REAL);
-			put(Boolean.class, SQLiteType.INTEGER);
-			put(Character.class, SQLiteType.TEXT);
-			put(String.class, SQLiteType.TEXT);
-			put(Byte[].class, SQLiteType.BLOB);
-		}
-	};
+	private static final HashMap<Class<?>, SQLiteType>	TYPE_MAP				= new HashMap<Class<?>, SQLiteType>() {
+																					{
+																						put(byte.class, SQLiteType.INTEGER);
+																						put(short.class, SQLiteType.INTEGER);
+																						put(int.class, SQLiteType.INTEGER);
+																						put(long.class, SQLiteType.INTEGER);
+																						put(float.class, SQLiteType.REAL);
+																						put(double.class, SQLiteType.REAL);
+																						put(boolean.class, SQLiteType.INTEGER);
+																						put(char.class, SQLiteType.TEXT);
+																						put(byte[].class, SQLiteType.BLOB);
+																						put(Byte.class, SQLiteType.INTEGER);
+																						put(Short.class, SQLiteType.INTEGER);
+																						put(Integer.class, SQLiteType.INTEGER);
+																						put(Long.class, SQLiteType.INTEGER);
+																						put(Float.class, SQLiteType.REAL);
+																						put(Double.class, SQLiteType.REAL);
+																						put(Boolean.class, SQLiteType.INTEGER);
+																						put(Character.class, SQLiteType.TEXT);
+																						put(String.class, SQLiteType.TEXT);
+																						put(Byte[].class, SQLiteType.BLOB);
+																					}
+																				};
 
-	//////////////////////////////////////////////////////////////////////////////////////
+	// ////////////////////////////////////////////////////////////////////////////////////
 	// PRIVATE MEMBERS
-	//////////////////////////////////////////////////////////////////////////////////////
+	// ////////////////////////////////////////////////////////////////////////////////////
 
-	private static HashMap<String, List<String>> sIndexGroupMap;
-	private static HashMap<String, List<String>> sUniqueGroupMap;
-	private static HashMap<String, ConflictAction> sOnUniqueConflictsMap;
+	private static HashMap<String, List<String>>		sIndexGroupMap;
+	private static HashMap<String, List<String>>		sUniqueGroupMap;
+	private static HashMap<String, ConflictAction>		sOnUniqueConflictsMap;
 
-	//////////////////////////////////////////////////////////////////////////////////////
+	// ////////////////////////////////////////////////////////////////////////////////////
 	// PUBLIC METHODS
-	//////////////////////////////////////////////////////////////////////////////////////
+	// ////////////////////////////////////////////////////////////////////////////////////
 
 	public static void execSql(String sql) {
 		Cache.openDatabase().execSQL(sql);
@@ -109,13 +109,13 @@ public final class SQLiteUtils {
 
 		return entities;
 	}
-	  
-	public static int intQuery(final String sql, final String[] selectionArgs) {
-        final Cursor cursor = Cache.openDatabase().rawQuery(sql, selectionArgs);
-        final int number = processIntCursor(cursor);
-        cursor.close();
 
-        return number;
+	public static int intQuery(final String sql, final String[] selectionArgs) {
+		final Cursor cursor = Cache.openDatabase().rawQuery(sql, selectionArgs);
+		final int number = processIntCursor(cursor);
+		cursor.close();
+
+		return number;
 	}
 
 	public static <T extends Model> T rawQuerySingle(Class<? extends Model> type, String sql, String[] selectionArgs) {
@@ -148,8 +148,7 @@ public final class SQLiteUtils {
 			List<String> group = sUniqueGroupMap.get(key);
 			ConflictAction conflictAction = sOnUniqueConflictsMap.get(key);
 
-			definitions.add(String.format("UNIQUE (%s) ON CONFLICT %s",
-					TextUtils.join(", ", group), conflictAction.toString()));
+			definitions.add(String.format("UNIQUE (%s) ON CONFLICT %s", TextUtils.join(", ", group), conflictAction.toString()));
 		}
 
 		return definitions;
@@ -159,9 +158,9 @@ public final class SQLiteUtils {
 		final String name = tableInfo.getColumnName(field);
 		final Column column = field.getAnnotation(Column.class);
 
-        if (field.getName().equals("mId")) {
-            return;
-        }
+		if (field.getName().equals("mId") && field.getDeclaringClass() == Model.class) {
+			return;
+		}
 
 		String[] groups = column.uniqueGroups();
 		ConflictAction[] conflictActions = column.onUniqueConflicts();
@@ -199,9 +198,8 @@ public final class SQLiteUtils {
 		}
 
 		for (Map.Entry<String, List<String>> entry : sIndexGroupMap.entrySet()) {
-			definitions.add(String.format("CREATE INDEX IF NOT EXISTS %s on %s(%s);",
-					"index_" + tableInfo.getTableName() + "_" + entry.getKey(),
-					tableInfo.getTableName(), TextUtils.join(", ", entry.getValue())));
+			definitions.add(String.format("CREATE INDEX IF NOT EXISTS %s on %s(%s);", "index_" + tableInfo.getTableName() + "_" + entry.getKey(), tableInfo.getTableName(),
+					TextUtils.join(", ", entry.getValue())));
 		}
 
 		return definitions.toArray(new String[definitions.size()]);
@@ -211,9 +209,9 @@ public final class SQLiteUtils {
 		final String name = tableInfo.getColumnName(field);
 		final Column column = field.getAnnotation(Column.class);
 
-        if (field.getName().equals("mId")) {
-            return;
-        }
+		if (field.getName().equals("mId")) {
+			return;
+		}
 
 		if (column.index()) {
 			List<String> list = new ArrayList<String>();
@@ -248,8 +246,7 @@ public final class SQLiteUtils {
 
 		definitions.addAll(createUniqueDefinition(tableInfo));
 
-		return String.format("CREATE TABLE IF NOT EXISTS %s (%s);", tableInfo.getTableName(),
-				TextUtils.join(", ", definitions));
+		return String.format("CREATE TABLE IF NOT EXISTS %s (%s);", tableInfo.getTableName(), TextUtils.join(", ", definitions));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -269,13 +266,11 @@ public final class SQLiteUtils {
 			definition.append(name);
 			definition.append(" ");
 			definition.append(TYPE_MAP.get(type).toString());
-		}
-		else if (ReflectionUtils.isModel(type)) {
+		} else if (ReflectionUtils.isModel(type)) {
 			definition.append(name);
 			definition.append(" ");
 			definition.append(SQLiteType.INTEGER.toString());
-		}
-		else if (ReflectionUtils.isSubclassOf(type, Enum.class)) {
+		} else if (ReflectionUtils.isSubclassOf(type, Enum.class)) {
 			definition.append(name);
 			definition.append(" ");
 			definition.append(SQLiteType.TEXT.toString());
@@ -285,7 +280,7 @@ public final class SQLiteUtils {
 
 			if (name.equals(tableInfo.getIdName())) {
 				definition.append(" PRIMARY KEY AUTOINCREMENT");
-			}else if(column!=null){
+			} else if (column != null) {
 				if (column.length() > -1) {
 					definition.append("(");
 					definition.append(column.length());
@@ -306,14 +301,13 @@ public final class SQLiteUtils {
 			if (FOREIGN_KEYS_SUPPORTED && ReflectionUtils.isModel(type)) {
 				definition.append(" REFERENCES ");
 				definition.append(Cache.getTableInfo((Class<? extends Model>) type).getTableName());
-				definition.append("("+tableInfo.getIdName()+")");
+				definition.append("(" + tableInfo.getIdName() + ")");
 				definition.append(" ON DELETE ");
 				definition.append(column.onDelete().toString().replace("_", " "));
 				definition.append(" ON UPDATE ");
 				definition.append(column.onUpdate().toString().replace("_", " "));
 			}
-		}
-		else {
+		} else {
 			Log.e("No type mapping for: " + type.toString());
 		}
 
@@ -330,11 +324,10 @@ public final class SQLiteUtils {
 			Constructor<?> entityConstructor = type.getConstructor();
 
 			if (cursor.moveToFirst()) {
-                /**
-                 * Obtain the columns ordered to fix issue #106 (https://github.com/pardom/ActiveAndroid/issues/106)
-                 * when the cursor have multiple columns with same name obtained from join tables.
-                 */
-                List<String> columnsOrdered = new ArrayList<String>(Arrays.asList(cursor.getColumnNames()));
+				/**
+				 * Obtain the columns ordered to fix issue #106 (https://github.com/pardom/ActiveAndroid/issues/106) when the cursor have multiple columns with same name obtained from join tables.
+				 */
+				List<String> columnsOrdered = new ArrayList<String>(Arrays.asList(cursor.getColumnNames()));
 				do {
 					Model entity = Cache.getEntity(type, cursor.getLong(columnsOrdered.indexOf(idName)));
 					if (entity == null) {
@@ -343,22 +336,19 @@ public final class SQLiteUtils {
 
 					entity.loadFromCursor(cursor);
 					entities.add((T) entity);
-				}
-				while (cursor.moveToNext());
+				} while (cursor.moveToNext());
 			}
 
-		}
-		catch (NoSuchMethodException e) {
-			throw new RuntimeException(
-                "Your model " + type.getName() + " does not define a default " +
-                "constructor. The default constructor is required for " +
-                "now in ActiveAndroid models, as the process to " +
-                "populate the ORM model is : " +
-                "1. instantiate default model " +
-                "2. populate fields"
-            );
-		}
-		catch (Exception e) {
+		} catch (NoSuchMethodException e) {
+			throw new RuntimeException("Your model "
+					+ type.getName()
+					+ " does not define a default "
+					+ "constructor. The default constructor is required for "
+					+ "now in ActiveAndroid models, as the process to "
+					+ "populate the ORM model is : "
+					+ "1. instantiate default model "
+					+ "2. populate fields");
+		} catch (Exception e) {
 			Log.e("Failed to process cursor.", e);
 		}
 
@@ -366,11 +356,11 @@ public final class SQLiteUtils {
 	}
 
 	private static int processIntCursor(final Cursor cursor) {
-        if (cursor.moveToFirst()) {
-            return cursor.getInt(0);
-	    }
-        return 0;
-    }
+		if (cursor.moveToFirst()) {
+			return cursor.getInt(0);
+		}
+		return 0;
+	}
 
 	public static List<String> lexSqlScript(String sqlScript) {
 		ArrayList<String> sl = new ArrayList<String>();
